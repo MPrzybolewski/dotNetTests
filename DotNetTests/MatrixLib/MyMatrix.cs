@@ -9,8 +9,8 @@ namespace MatrixLib
 {
     public class MyMatrix<T> where T : new()
     {
-        public int rows => Matrix.GetLength(0);
-        public int columns => Matrix.GetLength(1);
+        public int Rows => Matrix.GetLength(0);
+        public int Columns => Matrix.GetLength(1);
         public T[,] Matrix;
         public T[,] DefaultMatrix;
 
@@ -40,12 +40,12 @@ namespace MatrixLib
 
         public static MyMatrix<T> operator +(MyMatrix<T> firstMatrix, MyMatrix<T> secondMatrix)
         {
-            if ((firstMatrix.rows == secondMatrix.rows) && (firstMatrix.columns == secondMatrix.columns))
+            if ((firstMatrix.Rows == secondMatrix.Rows) && (firstMatrix.Columns == secondMatrix.Columns))
             {
-                MyMatrix<T> temp = new MyMatrix<T>(firstMatrix.rows, firstMatrix.columns);
-                for (int i = 0; i < firstMatrix.rows; i++)
+                MyMatrix<T> temp = new MyMatrix<T>(firstMatrix.Rows, firstMatrix.Columns);
+                for (int i = 0; i < firstMatrix.Rows; i++)
                 {
-                    for (int j = 0; j < firstMatrix.columns; j++)
+                    for (int j = 0; j < firstMatrix.Columns; j++)
                     {
                         temp.Matrix[i, j] = (dynamic)firstMatrix.Matrix[i, j] + (dynamic)secondMatrix.Matrix[i, j];
                     }
@@ -57,12 +57,12 @@ namespace MatrixLib
 
         public static MyMatrix<T> operator -(MyMatrix<T> firstMatrix, MyMatrix<T> secondMatrix)
         {
-            if ((firstMatrix.rows == secondMatrix.rows) && (firstMatrix.columns == secondMatrix.columns))
+            if ((firstMatrix.Rows == secondMatrix.Rows) && (firstMatrix.Columns == secondMatrix.Columns))
             {
-                MyMatrix<T> temp = new MyMatrix<T>(firstMatrix.rows, firstMatrix.columns);
-                for (int i = 0; i < firstMatrix.rows; i++)
+                MyMatrix<T> temp = new MyMatrix<T>(firstMatrix.Rows, firstMatrix.Columns);
+                for (int i = 0; i < firstMatrix.Rows; i++)
                 {
-                    for (int j = 0; j < firstMatrix.columns; j++)
+                    for (int j = 0; j < firstMatrix.Columns; j++)
                     {
                         temp.Matrix[i, j] = (dynamic)firstMatrix.Matrix[i, j] - (dynamic)secondMatrix.Matrix[i, j];
                     }
@@ -74,14 +74,14 @@ namespace MatrixLib
 
         public static MyMatrix<T> operator *(MyMatrix<T> firstMatrix, MyMatrix<T> secondMatrix)
         {
-            MyMatrix<T> result = new MyMatrix<T>(firstMatrix.rows, secondMatrix.columns);
-            for (int i = 0; i < firstMatrix.rows; i++)
+            MyMatrix<T> result = new MyMatrix<T>(firstMatrix.Rows, secondMatrix.Columns);
+            for (int i = 0; i < firstMatrix.Rows; i++)
             {
-                for (int j = 0; j < secondMatrix.columns; j++)
+                for (int j = 0; j < secondMatrix.Columns; j++)
                 {
-                    T[] instance = new T[firstMatrix.rows];
+                    T[] instance = new T[firstMatrix.Rows];
                     instance[0] = new T();
-                    for (int k = 0; k < secondMatrix.rows; k++)
+                    for (int k = 0; k < secondMatrix.Rows; k++)
                     {
                         instance[0] = (dynamic)instance[0] + (dynamic)firstMatrix.Matrix[i, k] * (dynamic)secondMatrix.Matrix[k, j];
                     }
@@ -123,13 +123,13 @@ namespace MatrixLib
 
         public T[] MakeRowEchelonMatrix(T[] bVector)
         {
-            for (int k = 0; k < columns; k++)
+            for (int k = 0; k < Columns; k++)
             {
-                for (int i = k; i < rows - 1; i++)
+                for (int i = k; i < Rows - 1; i++)
                 {
                     T numberForMultiply = (dynamic)Matrix[i + 1, k] / Matrix[k, k];
 
-                    for (int j = k; j < columns; j++)
+                    for (int j = k; j < Columns; j++)
                     {
                         Matrix[i + 1, j] -= ((dynamic)Matrix[k, j] * numberForMultiply);
                     }
@@ -143,7 +143,7 @@ namespace MatrixLib
 
         public T[] MakeRowEchelonMatrixWithRowChoice(T[] bVector)
         {
-            for (int k = 0; k < columns; k++)
+            for (int k = 0; k < Columns; k++)
             {
                 int rowWithDiagonalNumber = k;
                 int rowNumberWithMaxNumberInColumn = FindRowWithMaxNumberInColumnUnderDiagonal(k);
@@ -153,11 +153,11 @@ namespace MatrixLib
                     bVector = SwapRows(rowWithDiagonalNumber, rowNumberWithMaxNumberInColumn, bVector);
                 }
 
-                for (int i = k; i < rows - 1; i++)
+                for (int i = k; i < Rows - 1; i++)
                 {
                     T numberForMultiply = (dynamic)Matrix[i + 1, k] / Matrix[k, k];
 
-                    for (int j = k; j < columns; j++)
+                    for (int j = k; j < Columns; j++)
                     {
                         Matrix[i + 1, j] -= ((dynamic)Matrix[k, j] * numberForMultiply);
                     }
@@ -172,7 +172,7 @@ namespace MatrixLib
 
         public T[] MakeRowEchelonMatrixWithFullChoice(T[] bVector, int[] xVectorNumberChangeTable)
         {
-            for (int k = 0; k < columns; k++)
+            for (int k = 0; k < Columns; k++)
             {
 
                 int rowNumberWithDiagonalPoint = k;
@@ -190,11 +190,11 @@ namespace MatrixLib
                     xVectorNumberChangeTable = SwapColumns(rowNumberWithDiagonalPoint, greatestPosition.column, xVectorNumberChangeTable);
                 }
 
-                for (int i = k; i < rows - 1; i++)
+                for (int i = k; i < Rows - 1; i++)
                 {
                     T numberForMultiply = (dynamic)Matrix[i + 1, k] / Matrix[k, k];
 
-                    for (int j = k; j < columns; j++)
+                    for (int j = k; j < Columns; j++)
                     {
                         Matrix[i + 1, j] -= ((dynamic)Matrix[k, j] * numberForMultiply);
                     }
@@ -210,7 +210,7 @@ namespace MatrixLib
         {
             int rowNumberWithMaxNumberInColumn = columnNumber;
             int firstRowUnderDiagonal = columnNumber + 1;
-            for (int i = firstRowUnderDiagonal; i < rows; i++)
+            for (int i = firstRowUnderDiagonal; i < Rows; i++)
             {
                 if ((dynamic)Matrix[rowNumberWithMaxNumberInColumn, columnNumber] < Matrix[i, columnNumber])
                 {
@@ -224,9 +224,9 @@ namespace MatrixLib
         {
             int columnNumberWithDiagonalPoint = rowNumberWithDiagonalPoint;
             var result = (row: rowNumberWithDiagonalPoint, column: rowNumberWithDiagonalPoint);
-            for (int i = rowNumberWithDiagonalPoint; i < rows; i++)
+            for (int i = rowNumberWithDiagonalPoint; i < Rows; i++)
             {
-                for (int j = columnNumberWithDiagonalPoint; j < columns; j++)
+                for (int j = columnNumberWithDiagonalPoint; j < Columns; j++)
                 {
                     if ((dynamic)Matrix[i, j] > Matrix[result.row, result.column])
                     {
@@ -239,9 +239,9 @@ namespace MatrixLib
 
         public T[] SwapRows(int rowWithDiagonalNumber, int rowNumberWithMaxNumber, T[] bVector)
         {
-            T[] tempRow = new T[columns];
+            T[] tempRow = new T[Columns];
             T tempValue;
-            for (int i = 0; i < columns; i++)
+            for (int i = 0; i < Columns; i++)
             {
                 tempRow[i] = Matrix[rowWithDiagonalNumber, i];
                 Matrix[rowWithDiagonalNumber, i] = Matrix[rowNumberWithMaxNumber, i];
@@ -257,9 +257,9 @@ namespace MatrixLib
 
         public int[] SwapColumns(int columnNumberWithDiagonalPoint, int columnNumberWithMaxNumber, int[] xVector)
         {
-            T[] tempColumn = new T[rows];
+            T[] tempColumn = new T[Rows];
             int tempValue;
-            for (int i = 0; i < rows; i++)
+            for (int i = 0; i < Rows; i++)
             {
                 tempColumn[i] = Matrix[i, columnNumberWithDiagonalPoint];
                 Matrix[i, columnNumberWithDiagonalPoint] = Matrix[i, columnNumberWithMaxNumber];
@@ -279,7 +279,7 @@ namespace MatrixLib
             {
                 int j = i;
                 T numerator = bVector[i];
-                while (j < (columns - 1))
+                while (j < (Columns - 1))
                 {
                     numerator -= ((dynamic)Matrix[i, j + 1] * xVector[j + 1]);
                     j++;
@@ -338,10 +338,10 @@ namespace MatrixLib
         public override string ToString()
         {
             var result = String.Empty;
-            for (int i = 0; i < rows; i++)
+            for (int i = 0; i < Rows; i++)
             {
                 result += "| ";
-                for (int j = 0; j < columns; j++)
+                for (int j = 0; j < Columns; j++)
                 {
                     if (j != 0)
                     {
