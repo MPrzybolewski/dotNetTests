@@ -1,11 +1,11 @@
-﻿using DotNetTests.Interfaces;
+﻿using MatrixLib.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DotNetTests
+namespace MatrixLib
 {
     public class MyMatrix<T> where T : new()
     {
@@ -55,6 +55,23 @@ namespace DotNetTests
             return new MyMatrix<T>(1, 1);
         }
 
+        public static MyMatrix<T> operator -(MyMatrix<T> firstMatrix, MyMatrix<T> secondMatrix)
+        {
+            if ((firstMatrix.rows == secondMatrix.rows) && (firstMatrix.columns == secondMatrix.columns))
+            {
+                MyMatrix<T> temp = new MyMatrix<T>(firstMatrix.rows, firstMatrix.columns);
+                for (int i = 0; i < firstMatrix.rows; i++)
+                {
+                    for (int j = 0; j < firstMatrix.columns; j++)
+                    {
+                        temp.Matrix[i, j] = (dynamic)firstMatrix.Matrix[i, j] - (dynamic)secondMatrix.Matrix[i, j];
+                    }
+                }
+                return temp;
+            }
+            return new MyMatrix<T>(1, 1);
+        }
+
         public static MyMatrix<T> operator *(MyMatrix<T> firstMatrix, MyMatrix<T> secondMatrix)
         {
             MyMatrix<T> result = new MyMatrix<T>(firstMatrix.rows, secondMatrix.columns);
@@ -74,54 +91,37 @@ namespace DotNetTests
             return result;
         }
 
-        public static T[] operator *(MyMatrix<T> firstMatrix, T[] vector)
+        public T[] GaussWithoutChoice(T[] bVector)
         {
-            T[] instance = new T[firstMatrix.rows];
-            for (int i = 0; i < firstMatrix.rows; i++)
-            {
-                instance[i] = new T();
-            }
-            for (int i = 0; i < firstMatrix.rows; i++)
-            {
-                for (int j = 0; j < firstMatrix.columns; j++)
-                {
-                    instance[i] += (dynamic)firstMatrix.Matrix[i, j] * (dynamic)vector[j];
-                }
-            }
-            return instance;
-        }
-
-        public T[] gaussWithoutChoice(T[] bVector)
-        {
-            bVector = makeRowEchelonMatrix(bVector);
-            T[] xVector = countXVector(bVector);
-            setDefaultMatrix();
+            bVector = MakeRowEchelonMatrix(bVector);
+            T[] xVector = CountXVector(bVector);
+            SetDefaultMatrix();
             return xVector;
         }
 
 
-        public T[] gaussWithRowChoice(T[] bVector)
+        public T[] GaussWithRowChoice(T[] bVector)
         {
-            bVector = makeRowEchelonMatrixWithRowChoice(bVector);
-            T[] xVector = countXVector(bVector);
-            setDefaultMatrix();
+            bVector = MakeRowEchelonMatrixWithRowChoice(bVector);
+            T[] xVector = CountXVector(bVector);
+            SetDefaultMatrix();
             return xVector;
         }
 
-        public T[] gaussWithFullChoice(T[] bVector)
+        public T[] GaussWithFullChoice(T[] bVector)
         {
             int[] xVectorNumberChangeTable = new int[bVector.Length];
             for (int i = 0; i < bVector.Length; i++)
             {
                 xVectorNumberChangeTable[i] = i + 1;
             }
-            bVector = makeRowEchelonMatrixWithFullChoice(bVector, xVectorNumberChangeTable);
-            T[] xVector = countModifiedXVector(bVector, xVectorNumberChangeTable);
-            setDefaultMatrix();
+            bVector = MakeRowEchelonMatrixWithFullChoice(bVector, xVectorNumberChangeTable);
+            T[] xVector = CountModifiedXVector(bVector, xVectorNumberChangeTable);
+            SetDefaultMatrix();
             return xVector;
         }
 
-        private T[] makeRowEchelonMatrix(T[] bVector)
+        public T[] MakeRowEchelonMatrix(T[] bVector)
         {
             for (int k = 0; k < columns; k++)
             {
@@ -141,16 +141,16 @@ namespace DotNetTests
             return bVector;
         }
 
-        private T[] makeRowEchelonMatrixWithRowChoice(T[] bVector)
+        public T[] MakeRowEchelonMatrixWithRowChoice(T[] bVector)
         {
             for (int k = 0; k < columns; k++)
             {
                 int rowWithDiagonalNumber = k;
-                int rowNumberWithMaxNumberInColumn = findRowWithMaxNumberInColumnUnderDiagonal(k);
+                int rowNumberWithMaxNumberInColumn = FindRowWithMaxNumberInColumnUnderDiagonal(k);
 
                 if (rowNumberWithMaxNumberInColumn != rowWithDiagonalNumber)
                 {
-                    bVector = swapRows(rowWithDiagonalNumber, rowNumberWithMaxNumberInColumn, bVector);
+                    bVector = SwapRows(rowWithDiagonalNumber, rowNumberWithMaxNumberInColumn, bVector);
                 }
 
                 for (int i = k; i < rows - 1; i++)
@@ -170,7 +170,7 @@ namespace DotNetTests
         }
 
 
-        private T[] makeRowEchelonMatrixWithFullChoice(T[] bVector, int[] xVectorNumberChangeTable)
+        public T[] MakeRowEchelonMatrixWithFullChoice(T[] bVector, int[] xVectorNumberChangeTable)
         {
             for (int k = 0; k < columns; k++)
             {
@@ -179,15 +179,15 @@ namespace DotNetTests
                 int rowNumberWithMaxNumberInMatrix = rowNumberWithDiagonalPoint;
                 int columnNumberWithMaxNumberInMatrix = rowNumberWithDiagonalPoint;
 
-                findRowAndColumnWithMaxElementInMatrix(rowNumberWithDiagonalPoint, ref rowNumberWithMaxNumberInMatrix, ref columnNumberWithMaxNumberInMatrix);
-                if (rowNumberWithMaxNumberInMatrix != rowNumberWithDiagonalPoint)
+                var greatestPosition = FindRowAndColumnWithMaxElementInMatrix(rowNumberWithDiagonalPoint);
+                if (greatestPosition.row != rowNumberWithDiagonalPoint)
                 {
-                    bVector = swapRows(rowNumberWithDiagonalPoint, rowNumberWithMaxNumberInMatrix, bVector);
+                    bVector = SwapRows(rowNumberWithDiagonalPoint, greatestPosition.row, bVector);
                 }
 
-                if (columnNumberWithMaxNumberInMatrix != rowNumberWithDiagonalPoint)
+                if (greatestPosition.column != rowNumberWithDiagonalPoint)
                 {
-                    xVectorNumberChangeTable = swapColumns(rowNumberWithDiagonalPoint, columnNumberWithMaxNumberInMatrix, xVectorNumberChangeTable);
+                    xVectorNumberChangeTable = SwapColumns(rowNumberWithDiagonalPoint, greatestPosition.column, xVectorNumberChangeTable);
                 }
 
                 for (int i = k; i < rows - 1; i++)
@@ -206,7 +206,7 @@ namespace DotNetTests
             return bVector;
         }
 
-        private int findRowWithMaxNumberInColumnUnderDiagonal(int columnNumber)
+        public int FindRowWithMaxNumberInColumnUnderDiagonal(int columnNumber)
         {
             int rowNumberWithMaxNumberInColumn = columnNumber;
             int firstRowUnderDiagonal = columnNumber + 1;
@@ -220,24 +220,24 @@ namespace DotNetTests
             return rowNumberWithMaxNumberInColumn;
         }
 
-        private void findRowAndColumnWithMaxElementInMatrix(int rowNumberWithDiagonalPoint, ref int rowNumberWithMaxNumberInMatrix, ref int columnNumberWithMaxNumberInMatrix)
+        public (int row, int column) FindRowAndColumnWithMaxElementInMatrix(int rowNumberWithDiagonalPoint = 0)
         {
             int columnNumberWithDiagonalPoint = rowNumberWithDiagonalPoint;
-
+            var result = (row: rowNumberWithDiagonalPoint, column: rowNumberWithDiagonalPoint);
             for (int i = rowNumberWithDiagonalPoint; i < rows; i++)
             {
                 for (int j = columnNumberWithDiagonalPoint; j < columns; j++)
                 {
-                    if ((dynamic)Matrix[rowNumberWithMaxNumberInMatrix, columnNumberWithMaxNumberInMatrix] < Matrix[i, j])
+                    if ((dynamic)Matrix[i, j] > Matrix[result.row, result.column])
                     {
-                        rowNumberWithMaxNumberInMatrix = i;
-                        columnNumberWithMaxNumberInMatrix = j;
+                        result = (i, j);
                     }
                 }
             }
+            return result;
         }
 
-        private T[] swapRows(int rowWithDiagonalNumber, int rowNumberWithMaxNumber, T[] bVector)
+        public T[] SwapRows(int rowWithDiagonalNumber, int rowNumberWithMaxNumber, T[] bVector)
         {
             T[] tempRow = new T[columns];
             T tempValue;
@@ -255,7 +255,7 @@ namespace DotNetTests
             return bVector;
         }
 
-        private int[] swapColumns(int columnNumberWithDiagonalPoint, int columnNumberWithMaxNumber, int[] xVector)
+        public int[] SwapColumns(int columnNumberWithDiagonalPoint, int columnNumberWithMaxNumber, int[] xVector)
         {
             T[] tempColumn = new T[rows];
             int tempValue;
@@ -272,7 +272,7 @@ namespace DotNetTests
             return xVector;
         }
 
-        private T[] countXVector(T[] bVector)
+        public T[] CountXVector(T[] bVector)
         {
             T[] xVector = new T[bVector.Length];
             for (int i = bVector.Length - 1; i >= 0; i--)
@@ -291,24 +291,19 @@ namespace DotNetTests
             return xVector;
         }
 
-        private T[] countModifiedXVector(T[] bVector, int[] xVectorNumberChangeTable)
+        public  T[] CountModifiedXVector(T[] bVector, int[] xVectorNumberChangeTable)
         {
             T[] xVector = new T[bVector.Length];
-            xVector = countXVector(bVector);
+            xVector = CountXVector(bVector);
 
             int indexTemp;
             T valueTemp;
-            Console.WriteLine("Wektor x przed zmiana");
-            for (int i = 0; i < xVector.Length; i++)
-            {
-                Console.WriteLine("{0} - {1}", i + 1, xVectorNumberChangeTable[i]);
-            }
 
             for (int i = 0; i < xVector.Length; i++)
             {
                 if (xVectorNumberChangeTable[i] != i + 1)
                 {
-                    int indexWithNumber = findIndexWithNumber(xVectorNumberChangeTable, i + 1);
+                    int indexWithNumber = FindIndexWithNumberInVector(xVectorNumberChangeTable, i + 1);
 
                     indexTemp = xVectorNumberChangeTable[i];
                     xVectorNumberChangeTable[i] = xVectorNumberChangeTable[indexWithNumber];
@@ -319,17 +314,11 @@ namespace DotNetTests
                     xVector[indexWithNumber] = valueTemp;
                 }
             }
-
-            Console.WriteLine("Wektor x po zmianie");
-            for (int i = 0; i < xVector.Length; i++)
-            {
-                Console.WriteLine("{0} - {1}", i + 1, xVectorNumberChangeTable[i]);
-            }
-
+            
             return xVector;
         }
-
-        private int findIndexWithNumber(int[] xVector, int number)
+        
+        public static int FindIndexWithNumberInVector(int[] xVector, int number)
         {
             for (int i = 0; i < xVector.Length; i++)
             {
@@ -341,11 +330,30 @@ namespace DotNetTests
             return 0;
         }
 
-        public void setDefaultMatrix()
+        public void SetDefaultMatrix()
         {
             Matrix = (T[,])DefaultMatrix.Clone();
         }
 
+        public override string ToString()
+        {
+            var result = String.Empty;
+            for (int i = 0; i < rows; i++)
+            {
+                result += "| ";
+                for (int j = 0; j < columns; j++)
+                {
+                    if (j != 0)
+                    {
+                        result += "| ";
+                    }
+                    result += String.Format("{0:N3}", Matrix[i, j]);
 
+                }
+                result += "|\n";
+            }
+
+            return result;
+        }
     }
 }
